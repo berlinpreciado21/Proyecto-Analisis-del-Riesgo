@@ -1,6 +1,6 @@
 ---
 title: "Analisis del Riesgo Primera Entrega"
-author: "-Flavio Cesar Palacios Salas - Berlin Isabel Preciado - Daniel Orozco"
+author: "-Flavio Cesar Palacios Salas - Berlin Isabel Preciado Escalera - Daniel Orozco Gomez"
 date: "03-01-2022"
 output:
   html_notebook:
