@@ -1,0 +1,56 @@
+---
+title: "Analisis del Riesgo Primera Entrega"
+author: "-Flavio Cesar Palacios Salas - Berlin Isabel Preciado Escalera - Daniel Orozco Gomez"
+date: "03-01-2022"
+output:
+  html_notebook:
+    toc: yes
+    toc_float: yes
+    theme: cosmo
+    highlight: tango
+  github_document:
+    toc: yes
+    dev: jpeg
+always_allow_html: true
+---
+
+# Analisis de Qualitas
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+### Carga de paqueterías para cargar datos y graficar
+library(tidyquant)
+```
+
+```{r, message=FALSE,include=FALSE}
+options("getSymbols.warning4.0"=FALSE)
+options("getSymbols.yahoo.warning"=FALSE)
+# Descarga de los datos historicos de los últimos cinco años
+
+getSymbols("Q.MX", from = '2017-01-01',
+           to = "2022-01-28",warnings = FALSE,
+           auto.assign = TRUE)
+```
+
+
+
+## Introducción
+
+## Información del activo
+
+De acuerdo con el portal de la bolsa mexicana de valores Quálitas es la compañía con mayor participación de mercado en seguro automotriz en México y cuenta con presencia en El Salvador, Costa Rica y Estados Unidos. Su modelo de negocios, especializado exclusivamente en seguro de auto, le ha permitido ofrecer un servicio de primera calidad bajo la red de cobertura más grande del país. Fue constituida el 18 de Enero de 2008 y aparece enlistada en la Bolsa desde el 17 de Julio de 2012.
+
+
+A continuación observamos el historico de los últimos 5 años de su precio
+
+```{r,echo=FALSE}
+chart_Series(Q.MX)
+```
+**Figura 1. Precio de las acciones de Qualitas de los últimos 5 años expresado en pesos mexicanos**
+
+
+## Reportes de utilidad
+
+## Riesgos
+
+## Bibliografía
