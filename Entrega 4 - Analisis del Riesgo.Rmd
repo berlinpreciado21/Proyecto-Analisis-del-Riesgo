@@ -1,0 +1,198 @@
+---
+title: "Entrega 4 - Análisis del Riesgo de BOLSAA.MX"
+author:
+- Berlín Isabel Preciado Escalera
+- Flavio Cesar Palacios Salas
+- Daniel Orozco 
+date: "Primavera 2022"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    number_sections: yes
+  word_document:
+    toc: yes
+subtitle: Instituto Tecnológico y de Estudios Superiores de Occidente (ITESO), A.C.
+---
+
+<div style="text-align: justify; font-size: 16px">
+<br>
+En esta entrega se calculará y analizará la correlación que tienen los rendimientos de la emisora BOLSAA.MX. Esta correlación se medirá mediante el coeficiente de correlación de Pearson, definido de la siguiente manera:
+
+$$\rho_{x, y} = \frac{cov(x, y)}{\sigma_x \sigma_y}$$
+
+Donde
+
+* $cov(x,y)$ está definida como la **covarianza** entre las variables $x$ y $y$.
+
+* $\sigma_x$ es la **desviación estándar** de la variable $x$.
+
+* $\sigma_t$ es la **desviación estándar** de la variable $y$.
+
+<br>
+La correlación está definida como una forma de medir la **fuerza y dirección de la relación lineal entre dos variables** a partir de una regresión lineal, pero no necesariamente indica causalidad (una relación causa-efecto), sino una simple relación entre ambas. El **coeficiente de Pearson** puede variar en el intervalo[-1, 1] y se interpreta de la siguiente manera:
+
+* Si $\rho_{x,y} = 0$ no existe una correlación lineal perfecta, lo cual no precisamente muestra una independencia de las variables $x$ y $y$ sino que simplemente no existe una relación lineal (podrían tener una relación no lineal).
+* Si $0 < \rho_{x,y} \leq 1$ existe una correlación lineal positiva, lo que significa que en mayor o menor medida dependiendo de la magnitud del coeficiente; si $x$ aumenta, $y$ también (y viceversa).
+* Si $-1 \leq \rho_{x,y} < 0$ existe una correlación lineal negativa, lo que significa que en mayor o menor medida dependiendo de la magnitud del coeficiente; si $x$ aumenta, $y$ disminuye (y viceversa).
+* Si $\rho_{x,y} = 1$ existe una **correlación lineal positiva perfecta**, lo que indica una dependencia positiva total entre las variables.
+* Si $\rho_{x,y} = -1$ existe una **correlación lineal negativa perfecta**, lo que indica una dependencia negativa total entre las variables (Wikipedia, 2021, párr. 1-6).
+<br>
+</div>
+
+# Correlación de BOLSAA.MX con el mercado
+<div style="text-align: justify; font-size: 16px">
+A continuación se calcula la correlación entre BOLSAA.MX y el mercado mexicano de valores. El **mercado está representado por el IPC** (Índice de Precios y Cotizaciones) y se compararán sus respectivos rendimientos diarios para obtener el coeficiente de correlación de Pearson. Además, se presenta una gráfica que contiene los **histogramas** de ambos activos, la **gráfica de cuantil-cuantil** y el coeficiente de correlación (figura 1).
+</div>
+
+<div style="text-align: center; font-size: 13px">
+```{r Librerías, include = FALSE}
+library(PerformanceAnalytics)
+library(quantmod)
+library(lubridate)
+library(readr)
+library(tidyverse)
+library(readxl)
+library(kableExtra)
+```
+
+
+```{r}
+setwd("~/Analisis del riesgo")
+
+emisoras=read.csv("Emisoras_Completo2.csv")
+```
+
+
+```{r Obtener datos, include = FALSE}
+# clave <- "BOLSAA.MX"
+# getSymbols(clave, from = "2016-06-18",  to = today(), warnings = "FALSE")
+# lista <- lapply(clave, function(x) Cl(get(x)))
+# precio <- (do.call(merge, lista))
+# names(precio) <- clave
+# rendimiento <- na.omit(dailyReturn(precio))
+```
+
+```{r Correlación con el mercado, warning = FALSE, results = FALSE, echo = FALSE}
+# getSymbols("^MXX", from = "2016-06-18", to = today(), warnings = "FALSE")
+# rend_mercado <- na.omit(dailyReturn(na.omit(MXX$MXX.Adjusted)))
+# datos_corr_merc <- merge.xts(rend_mercado, rendimiento)
+# names(datos_corr_merc) <- c("IPC", clave)
+# chart.Correlation(na.omit(datos_corr_merc))
+# #cor(na.omit(datos_corr_merc))
+```
+```{r}
+datos <- new.env()
+clave = "BOLSAA.MX"
+getSymbols(clave, env = datos)
+precio <- datos[[clave]][,6]
+rendimiento=na.omit(diff(log(precio)))
+getSymbols("^MXX")
+rend_mercado=na.omit(diff(log(MXX$MXX.Adjusted)))
+```
+```{r}
+datos_cor=na.omit(merge.xts(rendimiento,rend_mercado))
+#chart.Correlation((datos_cor))
+
+```
+
+**Figura 1**. Gráfica que resume la correlación entre BOLSAA.MX y el mercado. Elaboración propia.
+</div>
+
+<div style="text-align: justify; font-size: 16px">
+<br>
+La gráfica anterior indica que BOLSAA.MX mantiene una correlación positiva con el mercado (lo que significa que si el rendimiento del mercado es positivo, generalmente el de BOLSAA.MX también lo es, y viceversa). Sin embargo, la magnitud de esta correlación no es tan grande, lo que indica que no son tan dependientes uno del otro.
+<br>
+</div>
+```{r}
+cor(datos_cor)
+cov(datos_cor)
+```
+
+
+```{r}
+lista= as.matrix(emisoras)
+```
+ 
+```{r Correlación con el resto de activos, include = FALSE}
+emisoras <- read_csv("Emisoras_Completo2.csv")
+lista_emisoras <- as.matrix(emisoras)
+n <- nrow(lista_emisoras)
+MAT_GER <- as.data.frame(matrix(0, n, 2))
+names(MAT_GER) <- c("Emisora", "Correlacion")
+for (i in 1:n) {
+  ticket <- lista_emisoras[i, 1]
+  getSymbols(ticket, from = "2016-06-17", to = today(), warnings = "FALSE")
+  lista_otro <- lapply(ticket, function(x) Cl(get(x)))
+  precio_otro <- (do.call(merge, lista_otro))
+  names(precio_otro) <- ticket
+  rendimiento_otro <- na.omit(dailyReturn(na.omit(precio_otro)))
+  datos_corr_otro <- merge.xts(rendimiento, rendimiento_otro)
+  matcor <- cor(na.omit(datos_corr_otro))
+  ro <- matcor[2, 1]
+  MAT_GER[i, 1] <- ticket
+  MAT_GER[i, 2] <- ro
+}
+```
+
+# Activos con mayor correlación con BOLSAA.MX
+<div style="text-align: justify; font-size: 16px">
+A continuación se analiza la correlación de los rendimientos de BOLSAA.MX con los de todos los demás títulos de renta variable que se ofertan en la BMV y se obtienen los **cinco activos más correlacionados** con ella. Los resultados se muestran en la figura 2.
+</div>
+
+<div style="text-align: center; font-size: 13px">
+```{r Mas correlacionados, warning = FALSE, results = FALSE, echo = FALSE}
+corr_desc <- arrange(MAT_GER, desc(abs(Correlacion)))
+lista_corr <- data.frame()
+for (i in 2:6) {
+  ticket <- corr_desc[i, 1]
+  getSymbols(ticket, from = "2016-06-18", to = today(), warnings = "FALSE")
+  lista_mas <- lapply(ticket, function(x) Cl(get(x)))
+  precio_mas <- (do.call(merge, lista_mas))
+  names(precio_mas) <- ticket
+  rendimiento_mas <- na.omit(dailyReturn(na.omit(precio_mas)))
+  datos_corr_mas <- merge.xts(rendimiento, rendimiento_mas)
+  names(datos_corr_mas) <- c(clave, ticket)
+  lista_corr <- merge.xts(lista_corr, datos_corr_mas[, 2])
+}
+lista_corr <- merge.xts(lista_corr, datos_corr_mas[, 1])
+chart.Correlation(lista_corr, histogram = "TRUE")
+```
+
+**Figura 2**. Gráfica que resume la correlación entre BOLSAA.MX y los activos más correlacionados con ella. Elaboración propia.
+</div>
+
+<div style="text-align: justify; font-size: 16px">
+<br>
+Los coeficientes de correlación con BOLSAA.MX se muestran en la última columna de la gráfica anterior, así como también se muestran los histogramas de los activos y las gráficas cuantil-cuantil. Con el objetivo de apreciar mejor los resultados, se presenta la siguiente tabla (tabla 1):
+```{r Tabla, echo = FALSE}
+# tablita <- tibble(act = c(), corr = c())
+# 
+# kable(tablita, align = c("c", "c"), digits = 2, col.names = c("Activo", "Coeficiente de correlación de Pearson")) %>%
+#   kable_paper(full_width = F, html_font = "Arial") %>%
+#   column_spec(1, bold = T, color = "black") %>%
+#   row_spec(0, bold = T, color = "black")
+```
+</div>
+
+<div style="text-align: center; font-size: 13px">
+**Tabla 1**. Coeficiente de correlación de Pearson de los rendimientos diarios de BOLSAA.MX con el mercado (IPC) y los activos más correlacionados. Elaboración propia.
+</div>
+
+<div style="text-align: justify; font-size: 16px">
+<br>
+
+</div>
+
+<div style="text-align: center; font-size: 13px">
+```{r Gráfica , echo = FALSE}
+# names(rend_mercado) <- "IPC"
+# datos_completos <- merge.xts(lista_corr, rend_mercado)
+# plot(datos_completos, lwd = 0.1, legend.loc = "bottomleft", main = "Rendimiento de BOLSAA.MX, mercado y activos", xlab = "Fecha (diaria)", ylab = "Rendimiento diario")
+```
+</div>
+
+# Referencias
+<div style="text-align: justify; font-size: 16px">
+1. Wikipedia. (2021). *Coeficiente de correlación de Pearson*. Recuperado 31 Marzo 2022, de https://es.wikipedia.org/wiki/Coeficiente_de_correlaci%C3%B3n_de_Pearson
+</div>
